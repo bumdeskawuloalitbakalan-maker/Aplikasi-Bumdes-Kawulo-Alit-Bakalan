@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUMDes Kawulo Alit - Sistem Manajemen Peternakan Ayam Petelur</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+
+  :root {
+    --green-dark: #1a4731;
+    --green-main: #2d7a4f;
+    --green-mid: #3d9b67;
+    --green-light: #56c47e;
+    --green-pale: #e8f7ef;
+    --brown-dark: #5c3317;
+    --brown-main: #8b5e3c;
+    --brown-light: #c4956a;
+    --brown-pale: #fdf3eb;
+    --white: #ffffff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-800: #1f2937;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --yellow: #f59e0b;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    overflow-x: hidden;
+  }
+
+  /* ====== LOGIN ====== */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 1000;
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-main) 50%, var(--brown-main) 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-card {
+    background: white;
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 420px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .login-logo {
+    width: 80px; height: 80px;
+    border-radius: 16px;
+    object-fit: cover;
+    margin: 0 auto 16px;
+    display: block;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .login-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-dark); margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 32px; }
+  .login-field { margin-bottom: 16px; text-align: left; }
+  .login-field label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+  .login-field input {
+    width: 100%; padding: 12px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+  }
+  .login-field input:focus { border-color: var(--green-main); }
+  .login-btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--green-main), var(--green-light));
+    color: white; border: none; border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(45,122,79,0.4); }
+  .login-err { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* ====== APP LAYOUT ====== */
+  #appScreen { display: none; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: linear-gradient(180deg, var(--green-dark) 0%, #0f2d1e 100%);
+    display: flex; flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-logo {
+    width: 44px; height: 44px;
+    border-radius: 10px; object-fit: cover;
+  }
+  .sidebar-brand { flex: 1; }
+  .sidebar-brand-name { font-size: 13px; font-weight: 700; color: white; line-height: 1.2; }
+  .sidebar-brand-sub { font-size: 10px; color: rgba(255,255,255,0.5); }
+  .sidebar-section-title {
+    padding: 16px 20px 6px;
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 0;
+    position: relative;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px; font-weight: 500;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
+  .nav-item.active {
+    background: rgba(86,196,126,0.15);
+    color: var(--green-light);
+    font-weight: 600;
+  }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--green-light);
+    border-radius: 0 2px 2px 0;
+  }
+  .nav-icon { font-size: 18px; width: 20px; text-align: center; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .logout-btn {
+    display: flex; align-items: center; gap: 10px;
+    color: rgba(255,255,255,0.4); font-size: 13px;
+    cursor: pointer; padding: 8px 0;
+    transition: color 0.2s;
+  }
+  .logout-btn:hover { color: var(--red); }
+
+  /* ====== MAIN CONTENT ====== */
+  .main {
+    margin-left: var(--sidebar-w);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  .topbar {
+    background: white;
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; color: var(--green-dark); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .topbar-date { font-size: 12px; color: var(--gray-400); }
+  .topbar-user {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--green-pale); padding: 6px 12px;
+    border-radius: 20px; font-size: 13px; font-weight: 600;
+    color: var(--green-dark);
+  }
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* ====== PAGE ====== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ====== CARDS ====== */
+  .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: white; border-radius: 16px;
+    padding: 20px; display: flex; align-items: flex-start;
+    gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--gray-200);
+    transition: transform 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .stat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .stat-icon.green { background: var(--green-pale); }
+  .stat-icon.brown { background: var(--brown-pale); }
+  .stat-icon.blue { background: #eff6ff; }
+  .stat-icon.red { background: #fef2f2; }
+  .stat-label { font-size: 12px; color: var(--gray-400); font-weight: 500; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--gray-800); }
+  .stat-sub { font-size: 11px; color: var(--green-main); margin-top: 2px; }
+
+  /* ====== CHARTS ====== */
+  .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .charts-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+  .chart-card {
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--gray-200);
+  }
+  .chart-title { font-size: 14px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+  .chart-sub { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 200px; }
+
+  /* ====== TABLE ====== */
+  .table-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--gray-200); overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .table-header {
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .table-title { font-size: 15px; font-weight: 700; color: var(--gray-800); }
+  .table-actions { display: flex; gap: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--gray-50); }
+  th {
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  td {
+    padding: 12px 14px; font-size: 13px;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-600);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-50); }
+
+  /* ====== BUTTONS ====== */
+  .btn {
+    padding: 8px 16px; border-radius: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-green { background: var(--green-main); color: white; }
+  .btn-green:hover { background: var(--green-dark); }
+  .btn-brown { background: var(--brown-main); color: white; }
+  .btn-brown:hover { background: var(--brown-dark); }
+  .btn-outline { background: transparent; color: var(--green-main); border: 1.5px solid var(--green-main); }
+  .btn-outline:hover { background: var(--green-pale); }
+  .btn-red { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+  .btn-red:hover { background: #fee2e2; }
+  .btn-blue { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; }
+  .btn-blue:hover { background: #dbeafe; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .btn-lg { padding: 12px 24px; font-size: 14px; border-radius: 10px; }
+
+  /* ====== MODAL ====== */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 500; display: none;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 20px;
+    padding: 28px; width: 500px;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; color: var(--green-dark); margin-bottom: 20px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid var(--gray-200); border-radius: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--green-main); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+  /* ====== LAPORAN ====== */
+  .report-selector {
+    background: white; border-radius: 16px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--gray-200); margin-bottom: 24px;
+    display: flex; gap: 16px; align-items: flex-end;
+  }
+  .report-selector .form-group { margin: 0; }
+  .report-section { margin-bottom: 24px; }
+  .section-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-head-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--green-pale); display: flex;
+    align-items: center; justify-content: center; font-size: 18px;
+  }
+  .section-head h2 { font-size: 16px; font-weight: 700; color: var(--green-dark); }
+
+  /* ====== LPJ ====== */
+  .lpj-card {
+    background: white; border-radius: 20px; padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--gray-200);
+    max-width: 700px;
+  }
+  .lpj-logo-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .lpj-logo-row img { width: 70px; height: 70px; border-radius: 12px; object-fit: cover; }
+  .lpj-title-main { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--green-dark); }
+  .lpj-title-sub { font-size: 13px; color: var(--gray-400); }
+  .period-row { display: flex; gap: 16px; margin-bottom: 24px; }
+
+  /* ====== TOAST ====== */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--green-dark); color: white;
+    padding: 12px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--red); }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--green-pale); color: var(--green-dark); }
+  .badge-brown { background: var(--brown-pale); color: var(--brown-dark); }
+  .badge-red { background: #fef2f2; color: #991b1b; }
+  .badge-blue { background: #eff6ff; color: #1e40af; }
+
+  /* SUMMARY ROW in reports */
+  .summary-box {
+    background: var(--green-pale); border-radius: 12px;
+    padding: 16px 20px; display: flex; gap: 24px;
+    flex-wrap: wrap; margin: 16px 0;
+  }
+  .summary-item label { display: block; font-size: 11px; color: var(--green-main); font-weight: 600; }
+  .summary-item span { font-size: 16px; font-weight: 800; color: var(--green-dark); }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div id="logoLoginWrap" style="width:80px;height:80px;margin:0 auto 16px;border-radius:16px;overflow:hidden;display:block;box-shadow:0 4px 16px rgba(0,0,0,0.1)"></div>
+    <div class="login-title">BUMDes Kawulo Alit</div>
+    <div class="login-sub">Sistem Manajemen Peternakan Ayam Petelur · Desa Bakalan</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Masukkan username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔐 Masuk ke Aplikasi</button>
+    <div class="login-err" id="loginErr">❌ Username atau password salah!</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appScreen">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div id="logoSidebarWrap" style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0"></div>
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">BUMDes Kawulo Alit</div>
+        <div class="sidebar-brand-sub">Desa Bakalan</div>
+      </div>
+    </div>
+    <div class="sidebar-section-title">Menu Utama</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="sidebar-section-title">Data Peternakan</div>
+    <div class="nav-item" onclick="showPage('peternakan',this)">
+      <span class="nav-icon">🐔</span> Data Ayam
+    </div>
+    <div class="nav-item" onclick="showPage('produksi',this)">
+      <span class="nav-icon">🥚</span> Produksi Telur
+    </div>
+    <div class="nav-item" onclick="showPage('penjualan',this)">
+      <span class="nav-icon">🛒</span> Penjualan Telur
+    </div>
+    <div class="sidebar-section-title">Keuangan & Aset</div>
+    <div class="nav-item" onclick="showPage('pengeluaran',this)">
+      <span class="nav-icon">💸</span> Pengeluaran
+    </div>
+    <div class="nav-item" onclick="showPage('aset',this)">
+      <span class="nav-icon">🏗️</span> Manajemen Aset
+    </div>
+    <div class="sidebar-section-title">Pelaporan</div>
+    <div class="nav-item" onclick="showPage('laporan',this)">
+      <span class="nav-icon">📋</span> Laporan Usaha
+    </div>
+    <div class="nav-item" onclick="showPage('lpj',this)">
+      <span class="nav-icon">📥</span> Download LPJ
+    </div>
+    <div class="sidebar-footer">
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">💾 Data tersimpan otomatis</div>
+      <div class="logout-btn" onclick="doLogout()">🚪 Keluar dari Aplikasi</div>
+      <div class="logout-btn" style="margin-top:6px;color:rgba(255,100,100,0.5);font-size:12px" onclick="resetDataKonfirmasi()">🗑️ Reset Semua Data</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard BUMDes Kawulo Alit</div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbarDate"></div>
+        <div id="dbStatus" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--gray-100);color:var(--gray-600);cursor:default">🟡 Mode Lokal</div>
+        <div class="topbar-user">👤 Admin BUMDes</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ===== HALAMAN 1: DASHBOARD ===== -->
+      <div class="page active" id="page-dashboard">
+        <div class="cards-grid" style="grid-template-columns: repeat(3,1fr)">
+          <div class="stat-card">
+            <div class="stat-icon green">🐔</div>
+            <div>
+              <div class="stat-label">Total Ayam Aktif</div>
+              <div class="stat-value" id="d-totalAyam">0</div>
+              <div class="stat-sub">ekor</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🥚</div>
+            <div>
+              <div class="stat-label">Produksi Telur Hari Ini</div>
+              <div class="stat-value" id="d-telurHari">0</div>
+              <div class="stat-sub">butir</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">💰</div>
+            <div>
+              <div class="stat-label">Pendapatan Hari Ini</div>
+              <div class="stat-value" id="d-pendHari">Rp 0</div>
+              <div class="stat-sub">dari penjualan</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">📤</div>
+            <div>
+              <div class="stat-label">Pengeluaran Hari Ini</div>
+              <div class="stat-value" id="d-keluarHari">Rp 0</div>
+              <div class="stat-sub">operasional</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon brown">🏦</div>
+            <div>
+              <div class="stat-label">Saldo Kas BUMDes</div>
+              <div class="stat-value" id="d-saldo">Rp 0</div>
+              <div class="stat-sub">total akumulasi</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📦</div>
+            <div>
+              <div class="stat-label">Nilai Total Aset</div>
+              <div class="stat-value" id="d-aset">Rp 0</div>
+              <div class="stat-sub">inventaris</div>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">📈 Produksi Telur Bulanan</div>
+            <div class="chart-sub">Jumlah telur per bulan (butir)</div>
+            <div class="chart-wrap"><canvas id="chartProduksiBulanan"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">🥚 Kualitas Telur</div>
+            <div class="chart-sub">Perbandingan telur baik vs retak</div>
+            <div class="chart-wrap"><canvas id="chartKualitas"></canvas></div>
+          </div>
+        </div>
+        <div class="charts-grid-3">
+          <div class="chart-card">
+            <div class="chart-title">💰 Pendapatan Usaha</div>
+            <div class="chart-sub">Per bulan (Rp)</div>
+            <div class="chart-wrap"><canvas id="chartPendapatan"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📤 Pengeluaran Operasional</div>
+            <div class="chart-sub">Per bulan (Rp)</div>
+            <div class="chart-wrap"><canvas id="chartPengeluaran"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📊 Laba Bersih</div>
+            <div class="chart-sub">Pendapatan - Pengeluaran</div>
+            <div class="chart-wrap"><canvas id="chartLaba"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 2: PETERNAKAN ===== -->
+      <div class="page" id="page-peternakan">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🐔 Data Peternakan Ayam Petelur</div>
+            <div class="table-actions">
+              <button class="btn btn-green" onclick="openModal('modalAyam')">➕ Tambah Data</button>
+            </div>
+          </div>
+          <table id="tblAyam">
+            <thead><tr><th>#</th><th>Tanggal</th><th>Jenis Ayam</th><th>Jumlah</th><th>Umur (Bulan)</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+            <tbody id="tbodyAyam"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 3: PRODUKSI ===== -->
+      <div class="page" id="page-produksi">
+        <div class="chart-card" style="margin-bottom:24px">
+          <div class="chart-title">📈 Grafik Produksi Telur Harian</div>
+          <div class="chart-sub">10 hari terakhir</div>
+          <div class="chart-wrap"><canvas id="chartProduksiHarian"></canvas></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🥚 Pencatatan Produksi Telur Harian</div>
+            <div class="table-actions">
+              <button class="btn btn-green" onclick="openModal('modalProduksi')">➕ Tambah Data</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Tanggal</th><th>Jumlah Telur</th><th>Telur Retak</th><th>Telur Baik</th><th>Berat (Kg)</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+            <tbody id="tbodyProduksi"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 4: PENJUALAN ===== -->
+      <div class="page" id="page-penjualan">
+        <div class="chart-card" style="margin-bottom:24px">
+          <div class="chart-title">💰 Grafik Penjualan Telur Bulanan</div>
+          <div class="chart-sub">Total penjualan per bulan (Rp)</div>
+          <div class="chart-wrap"><canvas id="chartPenjualanBulanan"></canvas></div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🛒 Data Penjualan Telur</div>
+            <div class="table-actions">
+              <button class="btn btn-green" onclick="openModal('modalJual')">➕ Tambah Data</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Tanggal</th><th>Pembeli</th><th>Jumlah (Kg)</th><th>Harga/Kg</th><th>Total Penjualan</th><th>Aksi</th></tr></thead>
+            <tbody id="tbodyJual"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 5: PENGELUARAN ===== -->
+      <div class="page" id="page-pengeluaran">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">💸 Pengeluaran Operasional</div>
+            <div class="table-actions">
+              <button class="btn btn-green" onclick="openModal('modalKeluar')">➕ Tambah Data</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Tanggal</th><th>Jenis Pengeluaran</th><th>Jumlah Biaya</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+            <tbody id="tbodyKeluar"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 6: ASET ===== -->
+      <div class="page" id="page-aset">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🏗️ Manajemen Aset Usaha</div>
+            <div class="table-actions">
+              <button class="btn btn-green" onclick="openModal('modalAset')">➕ Tambah Aset</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Nama Aset</th><th>Jumlah</th><th>Nilai Aset</th><th>Kondisi</th><th>Tahun Pengadaan</th><th>Aksi</th></tr></thead>
+            <tbody id="tbodyAset"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 7: LAPORAN ===== -->
+      <div class="page" id="page-laporan">
+        <div class="report-selector">
+          <div class="form-group">
+            <label>Bulan</label>
+            <select id="lapBulan">
+              <option value="1">Januari</option><option value="2">Februari</option>
+              <option value="3">Maret</option><option value="4">April</option>
+              <option value="5">Mei</option><option value="6">Juni</option>
+              <option value="7">Juli</option><option value="8">Agustus</option>
+              <option value="9">September</option><option value="10">Oktober</option>
+              <option value="11">November</option><option value="12">Desember</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tahun</label>
+            <select id="lapTahun">
+              <option>2024</option><option selected>2025</option><option>2026</option>
+            </select>
+          </div>
+          <button class="btn btn-green" onclick="generateLaporan()">📊 Tampilkan Laporan</button>
+        </div>
+        <div id="laporanContent">
+          <div style="text-align:center;padding:60px;color:var(--gray-400)">
+            <div style="font-size:48px;margin-bottom:12px">📋</div>
+            <div>Pilih bulan dan tahun, lalu klik Tampilkan Laporan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== HALAMAN 8: DOWNLOAD LPJ ===== -->
+      <div class="page" id="page-lpj">
+        <div class="lpj-card">
+          <div class="lpj-logo-row">
+            <div id="logoLpjWrap" style="width:70px;height:70px;border-radius:12px;overflow:hidden;flex-shrink:0"></div>
+            <div>
+              <div class="lpj-title-main">Download LPJ BUMDes</div>
+              <div class="lpj-title-sub">Laporan Pertanggungjawaban Usaha Peternakan Ayam Petelur</div>
+            </div>
+          </div>
+          <div class="period-row">
+            <div class="form-group" style="flex:1">
+              <label>Bulan Laporan</label>
+              <select id="lpjBulan">
+                <option value="1">Januari</option><option value="2">Februari</option>
+                <option value="3">Maret</option><option value="4">April</option>
+                <option value="5">Mei</option><option value="6">Juni</option>
+                <option value="7">Juli</option><option value="8">Agustus</option>
+                <option value="9">September</option><option value="10">Oktober</option>
+                <option value="11">November</option><option value="12">Desember</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label>Tahun</label>
+              <select id="lpjTahun">
+                <option>2024</option><option selected>2025</option><option>2026</option>
+              </select>
+            </div>
+          </div>
+          <div style="background:var(--gray-50);border-radius:12px;padding:16px;margin-bottom:20px">
+            <div style="font-size:13px;font-weight:700;color:var(--gray-800);margin-bottom:8px">📄 Isi Dokumen LPJ yang Akan Digenerate:</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div style="font-size:12px;color:var(--gray-600)">✅ Halaman Judul LPJ</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Surat Pengantar Kepala Desa</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Pendahuluan & Profil Usaha</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Laporan Kegiatan Peternakan</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Laporan Produksi Telur</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Laporan Penjualan Telur</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Laporan Pengeluaran Operasional</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Perhitungan Laba Bersih</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Daftar Aset Usaha</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Kesimpulan & Penutup</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Tanda Tangan Direktur BUMDes</div>
+              <div style="font-size:12px;color:var(--gray-600)">✅ Mengetahui Kepala Desa</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-green btn-lg" onclick="generateLPJ('html')">🔍 Preview LPJ</button>
+            <button class="btn btn-brown btn-lg" onclick="generateLPJ('print')">🖨️ Download & Cetak PDF</button>
+            <button class="btn btn-outline btn-lg" onclick="generateLPJ('docx')">📝 Download Word (.doc)</button>
+          </div>
+          <div id="lpjPreview" style="display:none;margin-top:24px;border:2px solid var(--gray-200);border-radius:12px;overflow:hidden">
+            <div style="background:var(--green-dark);color:white;padding:12px 16px;font-size:13px;font-weight:600">Preview Dokumen LPJ</div>
+            <div id="lpjContent" style="padding:24px;background:white;max-height:600px;overflow-y:auto;font-size:13px;line-height:1.7;color:#333"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /appScreen -->
+
+<div id="toastEl" class="toast"></div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:16px;padding:28px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-size:32px;margin-bottom:12px;animation:spin 1s linear infinite;display:inline-block">⏳</div>
+    <div id="loadingMsg" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;color:#1a4731">Memuat data...</div>
+    <div style="font-size:12px;color:#9ca3af;margin-top:4px">Mohon tunggu sebentar</div>
+  </div>
+</div>
+<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+
+<!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+<div class="modal-overlay" id="modalHapus">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div style="font-size:44px;margin-bottom:12px">🗑️</div>
+    <h3 style="color:var(--red);margin-bottom:8px">Hapus Data?</h3>
+    <p id="hapusDesc" style="font-size:13px;color:var(--gray-600);margin-bottom:20px">Data yang dihapus tidak dapat dikembalikan.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-outline" onclick="closeModal('modalHapus')" style="min-width:100px">Batal</button>
+      <button class="btn" id="hapusConfirmBtn" style="background:var(--red);color:white;min-width:120px">🗑️ Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Modal Ayam -->
+<div class="modal-overlay" id="modalAyam">
+  <div class="modal">
+    <h3 id="modalAyamTitle">🐔 Tambah Data Ayam</h3>
+    <input type="hidden" id="ayamEditId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="ayamTgl">
+      </div>
+      <div class="form-group">
+        <label>Jenis Ayam</label>
+        <select id="ayamJenis">
+          <option>Isa Brown</option>
+          <option>Lohmann Brown</option>
+          <option>Novogen</option>
+          <option>Hisex Brown</option>
+          <option>Ayam Kampung</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Jumlah Ayam (ekor)</label>
+        <input type="number" id="ayamJumlah" placeholder="500">
+      </div>
+      <div class="form-group">
+        <label>Umur Ayam (bulan)</label>
+        <input type="number" id="ayamUmur" placeholder="6">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Keterangan</label>
+      <input type="text" id="ayamKet" placeholder="Batch baru, kandang A...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalAyam')">Batal</button>
+      <button class="btn btn-green" onclick="saveAyam()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Produksi -->
+<div class="modal-overlay" id="modalProduksi">
+  <div class="modal">
+    <h3 id="modalProdTitle">🥚 Tambah Produksi Telur</h3>
+    <input type="hidden" id="prodEditId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="prodTgl">
+      </div>
+      <div class="form-group">
+        <label>Jumlah Telur (butir)</label>
+        <input type="number" id="prodJumlah" placeholder="400" oninput="hitungTelurBaik()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Telur Retak (butir)</label>
+        <input type="number" id="prodRetak" placeholder="10" oninput="hitungTelurBaik()">
+      </div>
+      <div class="form-group">
+        <label>Telur Baik (otomatis)</label>
+        <input type="number" id="prodBaik" readonly style="background:var(--green-pale);color:var(--green-dark);font-weight:700">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Berat (Kg)</label>
+        <input type="number" id="prodKg" step="0.1" placeholder="25.5">
+      </div>
+      <div class="form-group">
+        <label>Keterangan</label>
+        <input type="text" id="prodKet" placeholder="Normal, cuaca baik...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalProduksi')">Batal</button>
+      <button class="btn btn-green" onclick="saveProduksi()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Penjualan -->
+<div class="modal-overlay" id="modalJual">
+  <div class="modal">
+    <h3 id="modalJualTitle">🛒 Tambah Penjualan Telur</h3>
+    <input type="hidden" id="jualEditId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="jualTgl">
+      </div>
+      <div class="form-group">
+        <label>Nama Pembeli</label>
+        <input type="text" id="jualPembeli" placeholder="Toko Sembako Maju">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Jumlah (Kg)</label>
+        <input type="number" id="jualKg" step="0.1" placeholder="50" oninput="hitungTotal()">
+      </div>
+      <div class="form-group">
+        <label>Harga per Kg (Rp)</label>
+        <input type="number" id="jualHarga" placeholder="28000" oninput="hitungTotal()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Total Penjualan (otomatis)</label>
+      <input type="text" id="jualTotal" readonly style="background:var(--green-pale);color:var(--green-dark);font-weight:700">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalJual')">Batal</button>
+      <button class="btn btn-green" onclick="saveJual()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pengeluaran -->
+<div class="modal-overlay" id="modalKeluar">
+  <div class="modal">
+    <h3 id="modalKeluarTitle">💸 Tambah Pengeluaran</h3>
+    <input type="hidden" id="keluarEditId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="keluarTgl">
+      </div>
+      <div class="form-group">
+        <label>Jenis Pengeluaran</label>
+        <select id="keluarJenis">
+          <option>Pakan Ayam</option>
+          <option>Vitamin Ayam</option>
+          <option>Perawatan Kandang</option>
+          <option>Transportasi</option>
+          <option>Listrik & Air</option>
+          <option>Obat-obatan</option>
+          <option>Tenaga Kerja</option>
+          <option>Lain-lain</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Jumlah Biaya (Rp)</label>
+      <input type="number" id="keluarBiaya" placeholder="500000">
+    </div>
+    <div class="form-group">
+      <label>Keterangan</label>
+      <input type="text" id="keluarKet" placeholder="Detail pengeluaran...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalKeluar')">Batal</button>
+      <button class="btn btn-green" onclick="saveKeluar()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Aset -->
+<div class="modal-overlay" id="modalAset">
+  <div class="modal">
+    <h3 id="modalAsetTitle">🏗️ Tambah Aset Usaha</h3>
+    <input type="hidden" id="asetEditId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nama Aset</label>
+        <input type="text" id="asetNama" placeholder="Kandang Ayam A">
+      </div>
+      <div class="form-group">
+        <label>Jumlah Unit</label>
+        <input type="number" id="asetJumlah" placeholder="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nilai Aset (Rp)</label>
+        <input type="number" id="asetNilai" placeholder="15000000">
+      </div>
+      <div class="form-group">
+        <label>Kondisi</label>
+        <select id="asetKondisi">
+          <option>Baik</option>
+          <option>Cukup Baik</option>
+          <option>Perlu Perbaikan</option>
+          <option>Rusak</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tahun Pengadaan</label>
+      <input type="number" id="asetTahun" placeholder="2024">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalAset')">Batal</button>
+      <button class="btn btn-green" onclick="saveAset()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA DEFAULT (hanya dipakai jika localStorage kosong) =====
+const DEFAULT_DATA = {
+  ayam: [
+    {id:1, tgl:'2025-01-15', jenis:'Isa Brown', jumlah:500, umur:5, ket:'Kandang A - Batch 1'},
+    {id:2, tgl:'2025-02-01', jenis:'Lohmann Brown', jumlah:300, umur:4, ket:'Kandang B - Batch 2'},
+    {id:3, tgl:'2025-03-10', jenis:'Isa Brown', jumlah:200, umur:3, ket:'Kandang A - Penambahan'},
+  ],
+  produksi: [
+    {id:1,tgl:'2025-01-01',jumlah:850,retak:20,baik:830,kg:42.5,ket:'Normal'},
+    {id:2,tgl:'2025-01-02',jumlah:880,retak:15,baik:865,kg:43.2,ket:'Baik'},
+    {id:3,tgl:'2025-01-03',jumlah:820,retak:25,baik:795,kg:41.0,ket:'Cuaca panas'},
+    {id:4,tgl:'2025-01-04',jumlah:900,retak:10,baik:890,kg:45.0,ket:'Sangat baik'},
+    {id:5,tgl:'2025-01-05',jumlah:870,retak:18,baik:852,kg:43.5,ket:'Normal'},
+    {id:6,tgl:'2025-01-06',jumlah:910,retak:12,baik:898,kg:45.5,ket:'Produksi tinggi'},
+    {id:7,tgl:'2025-01-07',jumlah:840,retak:22,baik:818,kg:42.0,ket:'Normal'},
+    {id:8,tgl:'2025-01-08',jumlah:895,retak:14,baik:881,kg:44.7,ket:'Normal'},
+    {id:9,tgl:'2025-01-09',jumlah:860,retak:30,baik:830,kg:43.0,ket:'Hujan deras'},
+    {id:10,tgl:'2025-01-10',jumlah:920,retak:8,baik:912,kg:46.0,ket:'Produksi terbaik'},
+  ],
+  penjualan: [
+    {id:1,tgl:'2025-01-05',pembeli:'Toko Makmur',kg:80,harga:28000,total:2240000},
+    {id:2,tgl:'2025-01-12',pembeli:'Pasar Bakalan',kg:120,harga:27500,total:3300000},
+    {id:3,tgl:'2025-02-03',pembeli:'Toko Sembako Jaya',kg:100,harga:28500,total:2850000},
+    {id:4,tgl:'2025-02-18',pembeli:'Restoran Sari Rasa',kg:60,harga:30000,total:1800000},
+    {id:5,tgl:'2025-03-07',pembeli:'Toko Makmur',kg:90,harga:29000,total:2610000},
+    {id:6,tgl:'2025-03-20',pembeli:'Koperasi Desa',kg:150,harga:27000,total:4050000},
+    {id:7,tgl:'2025-04-10',pembeli:'Pasar Bakalan',kg:110,harga:28000,total:3080000},
+    {id:8,tgl:'2025-05-05',pembeli:'Toko Makmur',kg:95,harga:29500,total:2802500},
+  ],
+  pengeluaran: [
+    {id:1,tgl:'2025-01-01',jenis:'Pakan Ayam',biaya:3500000,ket:'Pakan konsentrat 1 ton'},
+    {id:2,tgl:'2025-01-10',jenis:'Vitamin Ayam',biaya:450000,ket:'Vitamin B kompleks & kalsium'},
+    {id:3,tgl:'2025-01-15',jenis:'Perawatan Kandang',biaya:750000,ket:'Cat & perbaikan atap'},
+    {id:4,tgl:'2025-02-01',jenis:'Pakan Ayam',biaya:3200000,ket:'Pakan konsentrat'},
+    {id:5,tgl:'2025-02-14',jenis:'Obat-obatan',biaya:300000,ket:'Vaksin & antibiotik'},
+    {id:6,tgl:'2025-03-01',jenis:'Pakan Ayam',biaya:3800000,ket:'Pakan konsentrat 1.1 ton'},
+    {id:7,tgl:'2025-03-10',jenis:'Transportasi',biaya:200000,ket:'Angkut hasil panen'},
+    {id:8,tgl:'2025-04-01',jenis:'Pakan Ayam',biaya:3600000,ket:'Pakan konsentrat'},
+    {id:9,tgl:'2025-05-01',jenis:'Tenaga Kerja',biaya:1500000,ket:'Upah penjaga kandang'},
+  ],
+  aset: [
+    {id:1,nama:'Kandang Ayam A',jumlah:1,nilai:15000000,kondisi:'Baik',tahun:2023},
+    {id:2,nama:'Kandang Ayam B',jumlah:1,nilai:12000000,kondisi:'Baik',tahun:2024},
+    {id:3,nama:'Tempat Pakan Otomatis',jumlah:10,nilai:5000000,kondisi:'Baik',tahun:2024},
+    {id:4,nama:'Tempat Minum Nipple',jumlah:20,nilai:2000000,kondisi:'Baik',tahun:2024},
+    {id:5,nama:'Mesin Pompa Air',jumlah:1,nilai:3500000,kondisi:'Baik',tahun:2023},
+    {id:6,nama:'Timbangan Digital',jumlah:2,nilai:800000,kondisi:'Baik',tahun:2024},
+    {id:7,nama:'Bak Penampung Air',jumlah:2,nilai:600000,kondisi:'Cukup Baik',tahun:2023},
+    {id:8,nama:'Peralatan Kandang',jumlah:1,nilai:1200000,kondisi:'Baik',tahun:2024},
+  ]
+};
+
+const DEFAULT_NEXTID = { ayam:100, produksi:100, penjualan:100, pengeluaran:100, aset:100 };
+
+// ===== GOOGLE SHEETS API ENGINE =====
+// Ganti URL ini dengan Web App URL setelah deploy Apps Script
+const GAS_URL = 'https://script.google.com/macros/s/AKfy.../exec';
+
+let data   = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let nextId = JSON.parse(JSON.stringify(DEFAULT_NEXTID));
+let editMode = {};
+let charts = {};
+let isOnline = true;
+
+// Cek apakah GAS_URL sudah dikonfigurasi
+function gasReady() {
+  return GAS_URL && GAS_URL !== 'GANTI_DENGAN_WEB_APP_URL';
+}
+
+// Tampilkan/sembunyikan loading overlay
+function showLoading(msg='Menyimpan data...') {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  document.getElementById('loadingMsg').textContent = msg;
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// Ambil semua data dari Google Sheets
+async function gasGetAll() {
+  if (!gasReady()) return null;
+  try {
+    const res = await fetch(GAS_URL + '?action=getAll', { method:'GET' });
+    const json = await res.json();
+    if (json.ok) return json.data;
+    throw new Error(json.error);
+  } catch(e) {
+    console.error('gasGetAll error:', e);
+    return null;
+  }
+}
+
+// Simpan/update satu baris ke Google Sheets
+async function gasSave(sheetName, row, isEdit=false) {
+  if (!gasReady()) { lsSaveLocal(); return true; }
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'save', sheet:sheetName, row, isEdit })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    lsSaveLocal();
+    return true;
+  } catch(e) {
+    console.error('gasSave error:', e);
+    lsSaveLocal();
+    return false;
+  }
+}
+
+// Hapus satu baris dari Google Sheets
+async function gasDelete(sheetName, id) {
+  if (!gasReady()) { lsSaveLocal(); return true; }
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action:'delete', sheet:sheetName, id })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+    lsSaveLocal();
+    return true;
+  } catch(e) {
+    console.error('gasDelete error:', e);
+    lsSaveLocal();
+    return false;
+  }
+}
+
+// Inisialisasi sheet pertama kali
+async function gasInitSheets() {
+  if (!gasReady()) return;
+  try {
+    await fetch(GAS_URL + '?action=initSheet', { method:'GET' });
+  } catch(e) { console.warn('gasInitSheets error:', e); }
+}
+
+// ===== LOCALSTORAGE BACKUP (cadangan offline) =====
+const LS_KEY_DATA   = 'bumdes_kawulo_alit_data';
+const LS_KEY_NEXTID = 'bumdes_kawulo_alit_nextid';
+
+function lsSaveLocal() {
+  try {
+    localStorage.setItem(LS_KEY_DATA,   JSON.stringify(data));
+    localStorage.setItem(LS_KEY_NEXTID, JSON.stringify(nextId));
+  } catch(e) {}
+}
+function lsLoadLocal() {
+  try {
+    const d = localStorage.getItem(LS_KEY_DATA);
+    const n = localStorage.getItem(LS_KEY_NEXTID);
+    if (d) return { data: JSON.parse(d), nextId: JSON.parse(n || '{}') };
+  } catch(e) {}
+  return null;
+}
+
+// Hitung nextId dari data yang ada
+function recalcNextId() {
+  ['ayam','produksi','penjualan','pengeluaran','aset'].forEach(k => {
+    if (data[k] && data[k].length > 0) {
+      nextId[k] = Math.max(...data[k].map(r => r.id || 0)) + 1;
+    }
+  });
+}
+
+
+// ===== INJECT LOGOS ON LOAD =====
+document.addEventListener('DOMContentLoaded', function() {
+  const loginWrap = document.getElementById('logoLoginWrap');
+  if(loginWrap) loginWrap.innerHTML = getLogo(80);
+  const sidebarWrap = document.getElementById('logoSidebarWrap');
+  if(sidebarWrap) sidebarWrap.innerHTML = getLogo(44);
+  const lpjWrap = document.getElementById('logoLpjWrap');
+  if(lpjWrap) lpjWrap.innerHTML = getLogo(70);
+});
+
+// ===== LOGIN =====
+function doLogin() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  if(u === 'Admin' && p === 'ndokayam') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter') doLogin();
+});
+function updateStatusBar() {
+  const isConfigured = gasReady();
+  const statusEl = document.getElementById('dbStatus');
+  if (statusEl) {
+    statusEl.textContent = isConfigured ? '🟢 Google Sheets' : '🟡 Mode Lokal';
+    statusEl.title = isConfigured ? 'Terhubung ke Google Sheets' : 'Google Sheets belum dikonfigurasi';
+  }
+}
+
+function doLogout() {
+  showHapusModal('Yakin ingin keluar dari aplikasi?', () => location.reload());
+}
+function resetDataKonfirmasi() {
+  showHapusModal('⚠️ RESET SEMUA DATA? Seluruh data akan dihapus dan dikembalikan ke data awal. Tindakan ini tidak bisa dibatalkan!', () => {
+    localStorage.removeItem(LS_KEY_DATA);
+    localStorage.removeItem(LS_KEY_NEXTID);
+    showToast('🗑️ Data direset. Halaman akan dimuat ulang...');
+    setTimeout(() => location.reload(), 1500);
+  });
+}
+
+// ===== INIT =====
+async function initApp() {
+  const now = new Date();
+  document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('lapBulan').value = now.getMonth()+1;
+  document.getElementById('lpjBulan').value = now.getMonth()+1;
+
+  if (gasReady()) {
+    // Load dari Google Sheets
+    showLoading('⏳ Memuat data dari Google Sheets...');
+    await gasInitSheets();
+    const sheetsData = await gasGetAll();
+    if (sheetsData) {
+      data = sheetsData;
+      recalcNextId();
+      lsSaveLocal();
+      showToast('✅ Data berhasil dimuat dari Google Sheets');
+    } else {
+      // Fallback ke localStorage jika Sheets gagal
+      const local = lsLoadLocal();
+      if (local) { data = local.data; nextId = local.nextId; }
+      showToast('⚠️ Gagal terhubung ke Sheets, menggunakan data lokal', true);
+    }
+    hideLoading();
+  } else {
+    // Belum dikonfigurasi — pakai localStorage
+    const local = lsLoadLocal();
+    if (local) { data = local.data; nextId = local.nextId; }
+    showToast('⚠️ Google Sheets belum dikonfigurasi', true);
+  }
+
+  renderAll();
+  initCharts();
+  updateDashboard();
+  updateStatusBar();
+}
+
+function renderAll() {
+  renderAyam(); renderProduksi(); renderJual(); renderKeluar(); renderAset();
+}
+
+// ===== PAGE NAVIGATION =====
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard BUMDes Kawulo Alit',
+    peternakan:'Data Peternakan Ayam Petelur',
+    produksi:'Produksi Telur Harian',
+    penjualan:'Penjualan Telur',
+    pengeluaran:'Pengeluaran Operasional',
+    aset:'Manajemen Aset Usaha',
+    laporan:'Laporan Usaha',
+    lpj:'Download LPJ BUMDes'
+  };
+  document.getElementById('topbarTitle').textContent = titles[name] || '';
+  if(name==='dashboard') { updateDashboard(); updateDashboardCharts(); }
+  if(name==='produksi') updateProduksiChart();
+  if(name==='penjualan') updatePenjualanChart();
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  editMode[id] = false;
+  // reset edit ids
+  ['ayamEditId','prodEditId','jualEditId','keluarEditId','asetEditId'].forEach(x => {
+    const el = document.getElementById(x);
+    if(el) el.value = '';
+  });
+}
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); });
+});
+
+// ===== TOAST =====
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('toastEl');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr?' error':'');
+  requestAnimationFrame(()=>{ t.classList.add('show'); });
+  setTimeout(()=>{ t.classList.remove('show'); }, 3000);
+}
+
+// ===== CUSTOM CONFIRM MODAL =====
+let _hapusCallback = null;
+function showHapusModal(desc, callback) {
+  _hapusCallback = callback;
+  document.getElementById('hapusDesc').textContent = desc;
+  document.getElementById('hapusConfirmBtn').onclick = function() {
+    closeModal('modalHapus');
+    if(_hapusCallback) _hapusCallback();
+    _hapusCallback = null;
+  };
+  openModal('modalHapus');
+}
+
+// ===== FORMAT =====
+function rupiah(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+function tglFmt(s) {
+  if(!s) return '-';
+  const d = new Date(s);
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+function today() { return new Date().toISOString().slice(0,10); }
+
+// ===== AYAM =====
+function renderAyam() {
+  const tb = document.getElementById('tbodyAyam');
+  tb.innerHTML = data.ayam.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${tglFmt(r.tgl)}</td>
+      <td><span class="badge badge-brown">${r.jenis}</span></td>
+      <td><strong>${r.jumlah.toLocaleString()}</strong> ekor</td>
+      <td>${r.umur} bulan</td>
+      <td>${r.ket}</td>
+      <td>
+        <button class="btn btn-blue btn-sm" onclick="editAyam(${r.id})">✏️ Edit</button>
+        <button class="btn btn-red btn-sm" onclick="hapusAyam(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+  updateDashboard();
+}
+async function saveAyam() {
+  const eid = document.getElementById('ayamEditId').value;
+  const obj = {
+    tgl: document.getElementById('ayamTgl').value,
+    jenis: document.getElementById('ayamJenis').value,
+    jumlah: parseInt(document.getElementById('ayamJumlah').value)||0,
+    umur: parseInt(document.getElementById('ayamUmur').value)||0,
+    ket: document.getElementById('ayamKet').value
+  };
+  if(!obj.tgl||!obj.jumlah){showToast('⚠️ Lengkapi data terlebih dahulu!', true);return;}
+  let savedObj;
+  if(eid) {
+    const idx = data.ayam.findIndex(r=>r.id==eid);
+    data.ayam[idx] = {...data.ayam[idx],...obj};
+    savedObj = data.ayam[idx];
+  } else {
+    obj.id = nextId.ayam++;
+    data.ayam.push(obj);
+    savedObj = obj;
+  }
+  closeModal('modalAyam');
+  ['ayamTgl','ayamJumlah','ayamUmur','ayamKet'].forEach(x=>document.getElementById(x).value='');
+  renderAyam();
+  showLoading(eid ? 'Mengupdate data ayam...' : 'Menyimpan data ayam...');
+  await gasSave('ayam', savedObj, !!eid);
+  hideLoading();
+  showToast('✅ Data ayam berhasil disimpan ke Google Sheets');
+}
+function editAyam(id) {
+  const r = data.ayam.find(x=>x.id===id);
+  document.getElementById('ayamEditId').value = id;
+  document.getElementById('ayamTgl').value = r.tgl;
+  document.getElementById('ayamJenis').value = r.jenis;
+  document.getElementById('ayamJumlah').value = r.jumlah;
+  document.getElementById('ayamUmur').value = r.umur;
+  document.getElementById('ayamKet').value = r.ket;
+  document.getElementById('modalAyamTitle').textContent = '✏️ Edit Data Ayam';
+  openModal('modalAyam');
+}
+function hapusAyam(id) {
+  showHapusModal('Hapus data ayam ini? Data tidak bisa dikembalikan.', async () => {
+    data.ayam = data.ayam.filter(r=>r.id!==id);
+    renderAyam();
+    showLoading('Menghapus data ayam...');
+    await gasDelete('ayam', id);
+    hideLoading();
+    showToast('🗑️ Data ayam berhasil dihapus');
+  });
+}
+
+// ===== PRODUKSI =====
+function hitungTelurBaik() {
+  const j = parseInt(document.getElementById('prodJumlah').value)||0;
+  const r = parseInt(document.getElementById('prodRetak').value)||0;
+  document.getElementById('prodBaik').value = j - r;
+}
+function renderProduksi() {
+  const tb = document.getElementById('tbodyProduksi');
+  tb.innerHTML = data.produksi.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${tglFmt(r.tgl)}</td>
+      <td>${r.jumlah.toLocaleString()}</td>
+      <td><span style="color:var(--red)">${r.retak}</span></td>
+      <td><strong style="color:var(--green-main)">${r.baik.toLocaleString()}</strong></td>
+      <td>${r.kg}</td>
+      <td>${r.ket}</td>
+      <td>
+        <button class="btn btn-blue btn-sm" onclick="editProduksi(${r.id})">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="hapusProduksi(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+  updateProduksiChart();
+}
+async function saveProduksi() {
+  const eid = document.getElementById('prodEditId').value;
+  const obj = {
+    tgl: document.getElementById('prodTgl').value,
+    jumlah: parseInt(document.getElementById('prodJumlah').value)||0,
+    retak: parseInt(document.getElementById('prodRetak').value)||0,
+    baik: parseInt(document.getElementById('prodBaik').value)||0,
+    kg: parseFloat(document.getElementById('prodKg').value)||0,
+    ket: document.getElementById('prodKet').value
+  };
+  if(!obj.tgl||!obj.jumlah){showToast('⚠️ Lengkapi data terlebih dahulu!', true);return;}
+  let savedObj;
+  if(eid) {
+    const idx = data.produksi.findIndex(r=>r.id==eid);
+    data.produksi[idx] = {...data.produksi[idx],...obj};
+    savedObj = data.produksi[idx];
+  } else {
+    obj.id = nextId.produksi++;
+    data.produksi.push(obj);
+    savedObj = obj;
+  }
+  closeModal('modalProduksi');
+  ['prodTgl','prodJumlah','prodRetak','prodBaik','prodKg','prodKet'].forEach(x=>document.getElementById(x).value='');
+  renderProduksi(); updateDashboard();
+  showLoading(eid ? 'Mengupdate data produksi...' : 'Menyimpan data produksi...');
+  await gasSave('produksi', savedObj, !!eid);
+  hideLoading();
+  showToast('✅ Data produksi berhasil disimpan ke Google Sheets');
+}
+function editProduksi(id) {
+  const r = data.produksi.find(x=>x.id===id);
+  document.getElementById('prodEditId').value = id;
+  document.getElementById('prodTgl').value = r.tgl;
+  document.getElementById('prodJumlah').value = r.jumlah;
+  document.getElementById('prodRetak').value = r.retak;
+  document.getElementById('prodBaik').value = r.baik;
+  document.getElementById('prodKg').value = r.kg;
+  document.getElementById('prodKet').value = r.ket;
+  document.getElementById('modalProdTitle').textContent = '✏️ Edit Produksi Telur';
+  openModal('modalProduksi');
+}
+function hapusProduksi(id) {
+  showHapusModal('Hapus data produksi telur ini? Data tidak bisa dikembalikan.', async () => {
+    data.produksi = data.produksi.filter(r=>r.id!==id);
+    renderProduksi(); updateDashboard();
+    showLoading('Menghapus data produksi...');
+    await gasDelete('produksi', id);
+    hideLoading();
+    showToast('🗑️ Data produksi berhasil dihapus');
+  });
+}
+
+// ===== PENJUALAN =====
+function hitungTotal() {
+  const kg = parseFloat(document.getElementById('jualKg').value)||0;
+  const h = parseFloat(document.getElementById('jualHarga').value)||0;
+  document.getElementById('jualTotal').value = rupiah(kg*h);
+}
+function renderJual() {
+  const tb = document.getElementById('tbodyJual');
+  tb.innerHTML = data.penjualan.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${tglFmt(r.tgl)}</td>
+      <td><strong>${r.pembeli}</strong></td>
+      <td>${r.kg} Kg</td>
+      <td>${rupiah(r.harga)}</td>
+      <td><strong style="color:var(--green-main)">${rupiah(r.total)}</strong></td>
+      <td>
+        <button class="btn btn-blue btn-sm" onclick="editJual(${r.id})">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="hapusJual(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+  updatePenjualanChart(); updateDashboard();
+}
+async function saveJual() {
+  const eid = document.getElementById('jualEditId').value;
+  const kg = parseFloat(document.getElementById('jualKg').value)||0;
+  const h = parseFloat(document.getElementById('jualHarga').value)||0;
+  const obj = {
+    tgl: document.getElementById('jualTgl').value,
+    pembeli: document.getElementById('jualPembeli').value,
+    kg, harga: h, total: kg*h
+  };
+  if(!obj.tgl||!obj.pembeli||!kg){showToast('⚠️ Lengkapi data terlebih dahulu!', true);return;}
+  let savedObj;
+  if(eid) {
+    const idx = data.penjualan.findIndex(r=>r.id==eid);
+    data.penjualan[idx] = {...data.penjualan[idx],...obj};
+    savedObj = data.penjualan[idx];
+  } else {
+    obj.id = nextId.penjualan++;
+    data.penjualan.push(obj);
+    savedObj = obj;
+  }
+  closeModal('modalJual');
+  ['jualTgl','jualPembeli','jualKg','jualHarga','jualTotal'].forEach(x=>document.getElementById(x).value='');
+  renderJual();
+  showLoading(eid ? 'Mengupdate data penjualan...' : 'Menyimpan data penjualan...');
+  await gasSave('penjualan', savedObj, !!eid);
+  hideLoading();
+  showToast('✅ Data penjualan berhasil disimpan ke Google Sheets');
+}
+function editJual(id) {
+  const r = data.penjualan.find(x=>x.id===id);
+  document.getElementById('jualEditId').value = id;
+  document.getElementById('jualTgl').value = r.tgl;
+  document.getElementById('jualPembeli').value = r.pembeli;
+  document.getElementById('jualKg').value = r.kg;
+  document.getElementById('jualHarga').value = r.harga;
+  document.getElementById('jualTotal').value = rupiah(r.total);
+  document.getElementById('modalJualTitle').textContent = '✏️ Edit Penjualan';
+  openModal('modalJual');
+}
+function hapusJual(id) {
+  showHapusModal('Hapus data penjualan ini? Data tidak bisa dikembalikan.', async () => {
+    data.penjualan = data.penjualan.filter(r=>r.id!==id);
+    renderJual();
+    showLoading('Menghapus data penjualan...');
+    await gasDelete('penjualan', id);
+    hideLoading();
+    showToast('🗑️ Data penjualan berhasil dihapus');
+  });
+}
+
+// ===== PENGELUARAN =====
+function renderKeluar() {
+  const tb = document.getElementById('tbodyKeluar');
+  tb.innerHTML = data.pengeluaran.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${tglFmt(r.tgl)}</td>
+      <td><span class="badge badge-brown">${r.jenis}</span></td>
+      <td><strong style="color:var(--red)">${rupiah(r.biaya)}</strong></td>
+      <td>${r.ket}</td>
+      <td>
+        <button class="btn btn-blue btn-sm" onclick="editKeluar(${r.id})">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="hapusKeluar(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+  updateDashboard();
+}
+async function saveKeluar() {
+  const eid = document.getElementById('keluarEditId').value;
+  const obj = {
+    tgl: document.getElementById('keluarTgl').value,
+    jenis: document.getElementById('keluarJenis').value,
+    biaya: parseFloat(document.getElementById('keluarBiaya').value)||0,
+    ket: document.getElementById('keluarKet').value
+  };
+  if(!obj.tgl||!obj.biaya){showToast('⚠️ Lengkapi data terlebih dahulu!', true);return;}
+  let savedObj;
+  if(eid) {
+    const idx = data.pengeluaran.findIndex(r=>r.id==eid);
+    data.pengeluaran[idx] = {...data.pengeluaran[idx],...obj};
+    savedObj = data.pengeluaran[idx];
+  } else {
+    obj.id = nextId.pengeluaran++;
+    data.pengeluaran.push(obj);
+    savedObj = obj;
+  }
+  closeModal('modalKeluar');
+  ['keluarTgl','keluarBiaya','keluarKet'].forEach(x=>document.getElementById(x).value='');
+  renderKeluar();
+  showLoading(eid ? 'Mengupdate data pengeluaran...' : 'Menyimpan data pengeluaran...');
+  await gasSave('pengeluaran', savedObj, !!eid);
+  hideLoading();
+  showToast('✅ Data pengeluaran berhasil disimpan ke Google Sheets');
+}
+function editKeluar(id) {
+  const r = data.pengeluaran.find(x=>x.id===id);
+  document.getElementById('keluarEditId').value = id;
+  document.getElementById('keluarTgl').value = r.tgl;
+  document.getElementById('keluarJenis').value = r.jenis;
+  document.getElementById('keluarBiaya').value = r.biaya;
+  document.getElementById('keluarKet').value = r.ket;
+  document.getElementById('modalKeluarTitle').textContent = '✏️ Edit Pengeluaran';
+  openModal('modalKeluar');
+}
+function hapusKeluar(id) {
+  showHapusModal('Hapus data pengeluaran ini? Data tidak bisa dikembalikan.', async () => {
+    data.pengeluaran = data.pengeluaran.filter(r=>r.id!==id);
+    renderKeluar();
+    showLoading('Menghapus data pengeluaran...');
+    await gasDelete('pengeluaran', id);
+    hideLoading();
+    showToast('🗑️ Data pengeluaran berhasil dihapus');
+  });
+}
+
+// ===== ASET =====
+function renderAset() {
+  const tb = document.getElementById('tbodyAset');
+  const kondisiBadge = {
+    'Baik':'badge-green','Cukup Baik':'badge-blue',
+    'Perlu Perbaikan':'badge-brown','Rusak':'badge-red'
+  };
+  tb.innerHTML = data.aset.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${r.nama}</strong></td>
+      <td>${r.jumlah} unit</td>
+      <td><strong>${rupiah(r.nilai)}</strong></td>
+      <td><span class="badge ${kondisiBadge[r.kondisi]||'badge-green'}">${r.kondisi}</span></td>
+      <td>${r.tahun}</td>
+      <td>
+        <button class="btn btn-blue btn-sm" onclick="editAset(${r.id})">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="hapusAset(${r.id})">🗑️</button>
+      </td>
+    </tr>`).join('');
+  updateDashboard();
+}
+async function saveAset() {
+  const eid = document.getElementById('asetEditId').value;
+  const obj = {
+    nama: document.getElementById('asetNama').value,
+    jumlah: parseInt(document.getElementById('asetJumlah').value)||1,
+    nilai: parseFloat(document.getElementById('asetNilai').value)||0,
+    kondisi: document.getElementById('asetKondisi').value,
+    tahun: parseInt(document.getElementById('asetTahun').value)||new Date().getFullYear()
+  };
+  if(!obj.nama||!obj.nilai){showToast('⚠️ Lengkapi data terlebih dahulu!', true);return;}
+  let savedObj;
+  if(eid) {
+    const idx = data.aset.findIndex(r=>r.id==eid);
+    data.aset[idx] = {...data.aset[idx],...obj};
+    savedObj = data.aset[idx];
+  } else {
+    obj.id = nextId.aset++;
+    data.aset.push(obj);
+    savedObj = obj;
+  }
+  closeModal('modalAset');
+  ['asetNama','asetJumlah','asetNilai','asetTahun'].forEach(x=>document.getElementById(x).value='');
+  renderAset();
+  showLoading(eid ? 'Mengupdate data aset...' : 'Menyimpan data aset...');
+  await gasSave('aset', savedObj, !!eid);
+  hideLoading();
+  showToast('✅ Data aset berhasil disimpan ke Google Sheets');
+}
+function editAset(id) {
+  const r = data.aset.find(x=>x.id===id);
+  document.getElementById('asetEditId').value = id;
+  document.getElementById('asetNama').value = r.nama;
+  document.getElementById('asetJumlah').value = r.jumlah;
+  document.getElementById('asetNilai').value = r.nilai;
+  document.getElementById('asetKondisi').value = r.kondisi;
+  document.getElementById('asetTahun').value = r.tahun;
+  document.getElementById('modalAsetTitle').textContent = '✏️ Edit Aset';
+  openModal('modalAset');
+}
+function hapusAset(id) {
+  showHapusModal('Hapus data aset ini? Data tidak bisa dikembalikan.', async () => {
+    data.aset = data.aset.filter(r=>r.id!==id);
+    renderAset();
+    showLoading('Menghapus data aset...');
+    await gasDelete('aset', id);
+    hideLoading();
+    showToast('🗑️ Data aset berhasil dihapus');
+  });
+}
+
+// ===== DASHBOARD UPDATE =====
+function updateDashboard() {
+  const totalAyam = data.ayam.reduce((s,r)=>s+r.jumlah,0);
+  const today2 = new Date().toISOString().slice(0,10);
+  const prodHari = data.produksi.filter(r=>r.tgl===today2).reduce((s,r)=>s+r.baik,0) ||
+    (data.produksi.length ? data.produksi[data.produksi.length-1].baik : 0);
+  const pendHari = data.penjualan.filter(r=>r.tgl===today2).reduce((s,r)=>s+r.total,0) ||
+    (data.penjualan.length ? data.penjualan[data.penjualan.length-1].total : 0);
+  const keluarHari = data.pengeluaran.filter(r=>r.tgl===today2).reduce((s,r)=>s+r.biaya,0) ||
+    (data.pengeluaran.length ? data.pengeluaran[data.pengeluaran.length-1].biaya : 0);
+  const totalPend = data.penjualan.reduce((s,r)=>s+r.total,0);
+  const totalKeluar = data.pengeluaran.reduce((s,r)=>s+r.biaya,0);
+  const saldo = totalPend - totalKeluar;
+  const totalAset = data.aset.reduce((s,r)=>s+r.nilai,0);
+
+  document.getElementById('d-totalAyam').textContent = totalAyam.toLocaleString('id-ID');
+  document.getElementById('d-telurHari').textContent = prodHari.toLocaleString('id-ID');
+  document.getElementById('d-pendHari').textContent = rupiah(pendHari);
+  document.getElementById('d-keluarHari').textContent = rupiah(keluarHari);
+  document.getElementById('d-saldo').textContent = rupiah(saldo);
+  document.getElementById('d-aset').textContent = rupiah(totalAset);
+}
+
+// ===== CHARTS =====
+const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+const greenGrad = ctx => {
+  const g = ctx.createLinearGradient(0,0,0,200);
+  g.addColorStop(0,'rgba(61,155,103,0.4)');
+  g.addColorStop(1,'rgba(61,155,103,0)');
+  return g;
+};
+
+function getMonthlyData(arr, valueKey) {
+  const result = Array(12).fill(0);
+  arr.forEach(r => {
+    const m = new Date(r.tgl).getMonth();
+    result[m] += r[valueKey] || 0;
+  });
+  return result;
+}
+
+function initCharts() {
+  const defaults = {
+    font: { family: "'Plus Jakarta Sans', sans-serif" },
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 } } }
+    }
+  };
+
+  // Dashboard charts
+  charts.produksiBulanan = new Chart(document.getElementById('chartProduksiBulanan'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        data: getMonthlyData(data.produksi,'baik'),
+        backgroundColor: 'rgba(45,122,79,0.7)',
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: { ...defaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  charts.kualitas = new Chart(document.getElementById('chartKualitas'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Telur Baik','Telur Retak'],
+      datasets: [{
+        data: [
+          data.produksi.reduce((s,r)=>s+r.baik,0),
+          data.produksi.reduce((s,r)=>s+r.retak,0)
+        ],
+        backgroundColor: ['#2d7a4f','#ef4444'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, position:'bottom', labels:{ font:{size:11} } } }
+    }
+  });
+
+  charts.pendapatan = new Chart(document.getElementById('chartPendapatan'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        data: getMonthlyData(data.penjualan,'total'),
+        borderColor: '#2d7a4f',
+        backgroundColor: ctx => greenGrad(ctx.chart.ctx),
+        fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2
+      }]
+    },
+    options: { ...defaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  charts.pengeluaran = new Chart(document.getElementById('chartPengeluaran'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        data: getMonthlyData(data.pengeluaran,'biaya'),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.08)',
+        fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2
+      }]
+    },
+    options: { ...defaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  const pend = getMonthlyData(data.penjualan,'total');
+  const kel = getMonthlyData(data.pengeluaran,'biaya');
+  charts.laba = new Chart(document.getElementById('chartLaba'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        data: pend.map((v,i)=>v-kel[i]),
+        backgroundColor: pend.map((v,i)=> v-kel[i]>=0 ? 'rgba(45,122,79,0.7)':'rgba(239,68,68,0.7)'),
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: { ...defaults, responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function updateDashboardCharts() {
+  if(!charts.produksiBulanan) return;
+  charts.produksiBulanan.data.datasets[0].data = getMonthlyData(data.produksi,'baik');
+  charts.produksiBulanan.update();
+  charts.kualitas.data.datasets[0].data = [
+    data.produksi.reduce((s,r)=>s+r.baik,0),
+    data.produksi.reduce((s,r)=>s+r.retak,0)
+  ];
+  charts.kualitas.update();
+  charts.pendapatan.data.datasets[0].data = getMonthlyData(data.penjualan,'total');
+  charts.pendapatan.update();
+  charts.pengeluaran.data.datasets[0].data = getMonthlyData(data.pengeluaran,'biaya');
+  charts.pengeluaran.update();
+  const p = getMonthlyData(data.penjualan,'total');
+  const k = getMonthlyData(data.pengeluaran,'biaya');
+  charts.laba.data.datasets[0].data = p.map((v,i)=>v-k[i]);
+  charts.laba.data.datasets[0].backgroundColor = p.map((v,i)=> v-k[i]>=0?'rgba(45,122,79,0.7)':'rgba(239,68,68,0.7)');
+  charts.laba.update();
+}
+
+function updateProduksiChart() {
+  const last10 = [...data.produksi].slice(-10);
+  if(!charts.produksiHarian) {
+    charts.produksiHarian = new Chart(document.getElementById('chartProduksiHarian'), {
+      type: 'line',
+      data: {
+        labels: last10.map(r=>tglFmt(r.tgl)),
+        datasets: [{
+          label:'Telur Baik',
+          data: last10.map(r=>r.baik),
+          borderColor: '#2d7a4f',
+          backgroundColor: 'rgba(45,122,79,0.1)',
+          fill: true, tension: 0.4, pointRadius: 5, borderWidth: 2
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x:{grid:{display:false}}, y:{grid:{color:'#f3f4f6'}} }
+      }
+    });
+  } else {
+    charts.produksiHarian.data.labels = last10.map(r=>tglFmt(r.tgl));
+    charts.produksiHarian.data.datasets[0].data = last10.map(r=>r.baik);
+    charts.produksiHarian.update();
+  }
+}
+
+function updatePenjualanChart() {
+  const monthly = getMonthlyData(data.penjualan,'total');
+  if(!charts.penjualanBulanan) {
+    charts.penjualanBulanan = new Chart(document.getElementById('chartPenjualanBulanan'), {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [{
+          data: monthly,
+          backgroundColor: 'rgba(139,94,60,0.7)',
+          borderRadius: 6, borderSkipped: false
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x:{grid:{display:false}}, y:{grid:{color:'#f3f4f6'}} }
+      }
+    });
+  } else {
+    charts.penjualanBulanan.data.datasets[0].data = monthly;
+    charts.penjualanBulanan.update();
+  }
+}
+
+// ===== LAPORAN =====
+function generateLaporan() {
+  const bulan = parseInt(document.getElementById('lapBulan').value);
+  const tahun = parseInt(document.getElementById('lapTahun').value);
+  const namaBulan = months[bulan-1];
+
+  const prodBulan = data.produksi.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+  const jualBulan = data.penjualan.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+  const keluarBulan = data.pengeluaran.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+
+  const totProd = prodBulan.reduce((s,r)=>s+r.baik,0);
+  const totJual = jualBulan.reduce((s,r)=>s+r.total,0);
+  const totKeluar = keluarBulan.reduce((s,r)=>s+r.biaya,0);
+  const laba = totJual - totKeluar;
+  const totAset = data.aset.reduce((s,r)=>s+r.nilai,0);
+
+  document.getElementById('laporanContent').innerHTML = `
+    <div class="section-head">
+      <div class="section-head-icon">📋</div>
+      <div><h2>Laporan Usaha — ${namaBulan} ${tahun}</h2></div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-item"><label>Total Produksi</label><span>${totProd.toLocaleString('id-ID')} butir</span></div>
+      <div class="summary-item"><label>Total Pendapatan</label><span>${rupiah(totJual)}</span></div>
+      <div class="summary-item"><label>Total Pengeluaran</label><span>${rupiah(totKeluar)}</span></div>
+      <div class="summary-item"><label>Laba Bersih</label><span style="color:${laba>=0?'var(--green-dark)':'var(--red)'}">${rupiah(laba)}</span></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">🥚 Laporan Produksi Telur</div></div>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Total Telur</th><th>Retak</th><th>Baik</th><th>Berat (Kg)</th></tr></thead>
+        <tbody>${prodBulan.length ? prodBulan.map(r=>`<tr>
+          <td>${tglFmt(r.tgl)}</td><td>${r.jumlah}</td>
+          <td style="color:var(--red)">${r.retak}</td>
+          <td style="color:var(--green-main);font-weight:700">${r.baik}</td>
+          <td>${r.kg}</td></tr>`).join('') :
+          '<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">Tidak ada data</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">🛒 Laporan Penjualan Telur</div></div>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Pembeli</th><th>Qty (Kg)</th><th>Harga/Kg</th><th>Total</th></tr></thead>
+        <tbody>${jualBulan.length ? jualBulan.map(r=>`<tr>
+          <td>${tglFmt(r.tgl)}</td><td>${r.pembeli}</td><td>${r.kg}</td>
+          <td>${rupiah(r.harga)}</td>
+          <td style="color:var(--green-main);font-weight:700">${rupiah(r.total)}</td></tr>`).join('') :
+          '<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">Tidak ada data</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">💸 Laporan Pengeluaran Operasional</div></div>
+      <table>
+        <thead><tr><th>Tanggal</th><th>Jenis</th><th>Biaya</th><th>Keterangan</th></tr></thead>
+        <tbody>${keluarBulan.length ? keluarBulan.map(r=>`<tr>
+          <td>${tglFmt(r.tgl)}</td><td>${r.jenis}</td>
+          <td style="color:var(--red);font-weight:700">${rupiah(r.biaya)}</td>
+          <td>${r.ket}</td></tr>`).join('') :
+          '<tr><td colspan="4" style="text-align:center;color:var(--gray-400)">Tidak ada data</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">🏗️ Laporan Nilai Aset</div></div>
+      <table>
+        <thead><tr><th>Nama Aset</th><th>Jumlah</th><th>Nilai</th><th>Kondisi</th></tr></thead>
+        <tbody>${data.aset.map(r=>`<tr>
+          <td><strong>${r.nama}</strong></td><td>${r.jumlah} unit</td>
+          <td style="font-weight:700">${rupiah(r.nilai)}</td>
+          <td>${r.kondisi}</td></tr>`).join('')}
+          <tr style="background:var(--green-pale)">
+            <td colspan="2"><strong>TOTAL NILAI ASET</strong></td>
+            <td colspan="2"><strong style="color:var(--green-dark)">${rupiah(totAset)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ===== LOGO SVG (inline, no external URL needed) =====
+function getLogo(size=44) {
+  return `<img src="data:image/jpeg;base64,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" style="width:${size}px;height:${size}px;object-fit:contain;border-radius:50%;background:white;padding:2px;display:block" alt="Logo BUMDes Kawulo Alit">`;
+}
+
+// ===== LPJ =====
+function getLPJData() {
+  const bulan = parseInt(document.getElementById('lpjBulan').value);
+  const tahun = parseInt(document.getElementById('lpjTahun').value);
+  const namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][bulan-1];
+
+  const prodBulan = data.produksi.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+  const jualBulan = data.penjualan.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+  const keluarBulan = data.pengeluaran.filter(r=>new Date(r.tgl).getMonth()+1===bulan && new Date(r.tgl).getFullYear()===tahun);
+
+  const totProd = prodBulan.reduce((s,r)=>s+r.baik,0);
+  const totJual = jualBulan.reduce((s,r)=>s+r.total,0);
+  const totKeluar = keluarBulan.reduce((s,r)=>s+r.biaya,0);
+  const laba = totJual - totKeluar;
+  const totAyam = data.ayam.reduce((s,r)=>s+r.jumlah,0);
+  const totAset = data.aset.reduce((s,r)=>s+r.nilai,0);
+  const tglDoc = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  return {bulan,tahun,namaBulan,prodBulan,jualBulan,keluarBulan,totProd,totJual,totKeluar,laba,totAyam,totAset,tglDoc};
+}
+
+function generateLPJ(mode) {
+  const d = getLPJData();
+  const logoSvg = getLogo(80);
+
+  const content = `
+<div style="font-family:'Times New Roman',serif;max-width:800px;margin:0 auto;color:#111;line-height:1.8;font-size:14px">
+
+  <!-- COVER -->
+  <div style="text-align:center;padding:40px 20px;border-bottom:3px solid #1a4731;margin-bottom:30px">
+    <div style="width:80px;height:80px;margin:0 auto 16px;border-radius:12px;overflow:hidden;display:inline-block">
+      ${logoSvg}
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#666;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">LAPORAN PERTANGGUNGJAWABAN</div>
+    <div style="font-size:26px;font-weight:900;color:#1a4731;margin-bottom:4px">USAHA PETERNAKAN AYAM PETELUR</div>
+    <div style="font-size:18px;font-weight:700;color:#2d7a4f;margin-bottom:16px">BUMDes Kawulo Alit — Desa Bakalan</div>
+    <div style="display:inline-block;background:#2d7a4f;color:white;padding:8px 24px;border-radius:30px;font-size:14px;font-weight:600">Periode: ${d.namaBulan} ${d.tahun}</div>
+  </div>
+
+  <!-- SURAT PENGANTAR -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">I. SURAT PENGANTAR</div>
+    <p style="text-align:right;margin-bottom:16px">Bakalan, ${d.tglDoc}</p>
+    <p>Kepada Yth.<br>Bapak/Ibu Kepala Desa Bakalan<br>di Tempat</p>
+    <br>
+    <p>Assalamu'alaikum Warahmatullahi Wabarakatuh,</p>
+    <p>Dengan hormat, kami selaku Pengurus BUMDes Kawulo Alit Desa Bakalan menyampaikan Laporan Pertanggungjawaban (LPJ) pelaksanaan kegiatan usaha peternakan ayam petelur untuk periode <strong>${d.namaBulan} ${d.tahun}</strong>.</p>
+    <p>Laporan ini disusun sebagai bentuk transparansi dan akuntabilitas pengelolaan dana usaha BUMDes kepada pemerintah desa dan masyarakat Desa Bakalan. Besar harapan kami laporan ini dapat diterima dan menjadi bahan evaluasi untuk peningkatan kinerja usaha ke depannya.</p>
+    <p>Atas perhatian dan kepercayaan yang diberikan, kami mengucapkan terima kasih.</p>
+    <br>
+    <p>Wassalamu'alaikum Warahmatullahi Wabarakatuh,</p>
+    <br>
+    <p style="text-align:right;margin-right:60px">Hormat kami,<br><br><br><strong><u>__________________________</u></strong><br>Direktur BUMDes Kawulo Alit</p>
+  </div>
+
+  <!-- PENDAHULUAN -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">II. PENDAHULUAN</div>
+    <p><strong>A. Profil Usaha</strong><br>
+    BUMDes Kawulo Alit adalah Badan Usaha Milik Desa yang berkedudukan di Desa Bakalan dan mengelola usaha peternakan ayam petelur sebagai unit usaha utama. Usaha ini bertujuan untuk meningkatkan perekonomian desa, memberdayakan masyarakat, serta menghasilkan Pendapatan Asli Desa (PAD).</p>
+    <p><strong>B. Tujuan Laporan</strong><br>
+    Laporan ini disusun untuk memberikan gambaran menyeluruh mengenai perkembangan dan kinerja usaha peternakan ayam petelur selama periode ${d.namaBulan} ${d.tahun}, meliputi aspek produksi, penjualan, keuangan, dan pengelolaan aset.</p>
+  </div>
+
+  <!-- KEGIATAN PETERNAKAN -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">III. LAPORAN KEGIATAN USAHA PETERNAKAN</div>
+    <p>Selama periode ${d.namaBulan} ${d.tahun}, kegiatan peternakan ayam petelur berjalan dengan baik. Berikut adalah data populasi ayam yang dikelola:</p>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <thead><tr style="background:#1a4731;color:white">
+        <th style="padding:8px;text-align:left;font-size:13px">Jenis Ayam</th>
+        <th style="padding:8px;font-size:13px">Jumlah</th>
+        <th style="padding:8px;font-size:13px">Umur (Bln)</th>
+        <th style="padding:8px;font-size:13px">Keterangan</th>
+      </tr></thead>
+      <tbody>
+        ${data.ayam.map((r,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'white'}">
+          <td style="padding:8px;font-size:13px">${r.jenis}</td>
+          <td style="padding:8px;text-align:center;font-size:13px">${r.jumlah} ekor</td>
+          <td style="padding:8px;text-align:center;font-size:13px">${r.umur}</td>
+          <td style="padding:8px;font-size:13px">${r.ket}</td>
+        </tr>`).join('')}
+        <tr style="background:#e8f7ef;font-weight:bold">
+          <td style="padding:8px;font-size:13px">TOTAL</td>
+          <td style="padding:8px;text-align:center;font-size:13px">${d.totAyam} ekor</td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PRODUKSI TELUR -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">IV. LAPORAN PRODUKSI TELUR</div>
+    <p>Total produksi telur periode ${d.namaBulan} ${d.tahun}: <strong>${d.totProd.toLocaleString('id-ID')} butir telur baik</strong></p>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <thead><tr style="background:#1a4731;color:white">
+        <th style="padding:8px;font-size:12px">Tanggal</th>
+        <th style="padding:8px;font-size:12px">Total Telur</th>
+        <th style="padding:8px;font-size:12px">Telur Retak</th>
+        <th style="padding:8px;font-size:12px">Telur Baik</th>
+        <th style="padding:8px;font-size:12px">Berat (Kg)</th>
+        <th style="padding:8px;font-size:12px">Ket</th>
+      </tr></thead>
+      <tbody>
+        ${d.prodBulan.length ? d.prodBulan.map((r,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'white'}">
+          <td style="padding:7px;font-size:12px">${tglFmt(r.tgl)}</td>
+          <td style="padding:7px;text-align:center;font-size:12px">${r.jumlah}</td>
+          <td style="padding:7px;text-align:center;font-size:12px;color:#dc2626">${r.retak}</td>
+          <td style="padding:7px;text-align:center;font-size:12px;font-weight:700;color:#1a4731">${r.baik}</td>
+          <td style="padding:7px;text-align:center;font-size:12px">${r.kg}</td>
+          <td style="padding:7px;font-size:12px">${r.ket}</td>
+        </tr>`).join('') : '<tr><td colspan="6" style="padding:12px;text-align:center;color:#888">Tidak ada data pada periode ini</td></tr>'}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PENJUALAN -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">V. LAPORAN PENJUALAN TELUR</div>
+    <p>Total pendapatan penjualan periode ${d.namaBulan} ${d.tahun}: <strong>${rupiah(d.totJual)}</strong></p>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <thead><tr style="background:#1a4731;color:white">
+        <th style="padding:8px;font-size:12px">Tanggal</th>
+        <th style="padding:8px;font-size:12px">Pembeli</th>
+        <th style="padding:8px;font-size:12px">Qty (Kg)</th>
+        <th style="padding:8px;font-size:12px">Harga/Kg</th>
+        <th style="padding:8px;font-size:12px">Total</th>
+      </tr></thead>
+      <tbody>
+        ${d.jualBulan.length ? d.jualBulan.map((r,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'white'}">
+          <td style="padding:7px;font-size:12px">${tglFmt(r.tgl)}</td>
+          <td style="padding:7px;font-size:12px">${r.pembeli}</td>
+          <td style="padding:7px;text-align:center;font-size:12px">${r.kg}</td>
+          <td style="padding:7px;font-size:12px">${rupiah(r.harga)}</td>
+          <td style="padding:7px;font-size:12px;font-weight:700;color:#1a4731">${rupiah(r.total)}</td>
+        </tr>`).join('') : '<tr><td colspan="5" style="padding:12px;text-align:center;color:#888">Tidak ada data pada periode ini</td></tr>'}
+        ${d.jualBulan.length ? `<tr style="background:#e8f7ef;font-weight:bold">
+          <td colspan="4" style="padding:8px;font-size:13px">TOTAL PENDAPATAN</td>
+          <td style="padding:8px;font-size:13px;color:#1a4731">${rupiah(d.totJual)}</td>
+        </tr>` : ''}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PENGELUARAN -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">VI. LAPORAN PENGELUARAN OPERASIONAL</div>
+    <p>Total pengeluaran operasional periode ${d.namaBulan} ${d.tahun}: <strong>${rupiah(d.totKeluar)}</strong></p>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <thead><tr style="background:#1a4731;color:white">
+        <th style="padding:8px;font-size:12px">Tanggal</th>
+        <th style="padding:8px;font-size:12px">Jenis</th>
+        <th style="padding:8px;font-size:12px">Biaya</th>
+        <th style="padding:8px;font-size:12px">Keterangan</th>
+      </tr></thead>
+      <tbody>
+        ${d.keluarBulan.length ? d.keluarBulan.map((r,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'white'}">
+          <td style="padding:7px;font-size:12px">${tglFmt(r.tgl)}</td>
+          <td style="padding:7px;font-size:12px">${r.jenis}</td>
+          <td style="padding:7px;font-size:12px;color:#dc2626;font-weight:700">${rupiah(r.biaya)}</td>
+          <td style="padding:7px;font-size:12px">${r.ket}</td>
+        </tr>`).join('') : '<tr><td colspan="4" style="padding:12px;text-align:center;color:#888">Tidak ada data pada periode ini</td></tr>'}
+        ${d.keluarBulan.length ? `<tr style="background:#fff0f0;font-weight:bold">
+          <td colspan="2" style="padding:8px;font-size:13px">TOTAL PENGELUARAN</td>
+          <td style="padding:8px;font-size:13px;color:#dc2626">${rupiah(d.totKeluar)}</td>
+          <td></td>
+        </tr>` : ''}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- LABA -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">VII. PERHITUNGAN LABA BERSIH</div>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <tbody>
+        <tr style="background:#f9f9f9">
+          <td style="padding:10px;font-size:14px">Total Pendapatan Penjualan</td>
+          <td style="padding:10px;text-align:right;font-size:14px;color:#1a4731;font-weight:700">${rupiah(d.totJual)}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px;font-size:14px">Total Pengeluaran Operasional</td>
+          <td style="padding:10px;text-align:right;font-size:14px;color:#dc2626;font-weight:700">(${rupiah(d.totKeluar)})</td>
+        </tr>
+        <tr style="background:${d.laba>=0?'#e8f7ef':'#fff0f0'};font-weight:900;font-size:16px">
+          <td style="padding:12px">LABA BERSIH</td>
+          <td style="padding:12px;text-align:right;color:${d.laba>=0?'#1a4731':'#dc2626'}">${rupiah(d.laba)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ASET -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">VIII. DAFTAR ASET USAHA</div>
+    <table style="width:100%;border-collapse:collapse;margin:12px 0">
+      <thead><tr style="background:#1a4731;color:white">
+        <th style="padding:8px;font-size:12px">No</th>
+        <th style="padding:8px;font-size:12px">Nama Aset</th>
+        <th style="padding:8px;font-size:12px">Jumlah</th>
+        <th style="padding:8px;font-size:12px">Nilai</th>
+        <th style="padding:8px;font-size:12px">Kondisi</th>
+        <th style="padding:8px;font-size:12px">Tahun</th>
+      </tr></thead>
+      <tbody>
+        ${data.aset.map((r,i)=>`<tr style="background:${i%2===0?'#f9f9f9':'white'}">
+          <td style="padding:7px;text-align:center;font-size:12px">${i+1}</td>
+          <td style="padding:7px;font-size:12px">${r.nama}</td>
+          <td style="padding:7px;text-align:center;font-size:12px">${r.jumlah} unit</td>
+          <td style="padding:7px;font-size:12px">${rupiah(r.nilai)}</td>
+          <td style="padding:7px;font-size:12px">${r.kondisi}</td>
+          <td style="padding:7px;text-align:center;font-size:12px">${r.tahun}</td>
+        </tr>`).join('')}
+        <tr style="background:#e8f7ef;font-weight:bold">
+          <td colspan="3" style="padding:8px;font-size:13px">TOTAL NILAI ASET</td>
+          <td style="padding:8px;font-size:13px;color:#1a4731">${rupiah(d.totAset)}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PENUTUP -->
+  <div style="margin-bottom:30px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:16px">IX. KESIMPULAN DAN PENUTUP</div>
+    <p>Berdasarkan laporan ini, usaha peternakan ayam petelur BUMDes Kawulo Alit Desa Bakalan pada periode ${d.namaBulan} ${d.tahun} dapat disimpulkan sebagai berikut:</p>
+    <ol style="margin:12px 0 12px 20px;line-height:2">
+      <li>Total produksi telur baik mencapai <strong>${d.totProd.toLocaleString('id-ID')} butir</strong>.</li>
+      <li>Total pendapatan usaha sebesar <strong>${rupiah(d.totJual)}</strong>.</li>
+      <li>Total pengeluaran operasional sebesar <strong>${rupiah(d.totKeluar)}</strong>.</li>
+      <li>Laba bersih usaha pada periode ini adalah <strong>${rupiah(d.laba)}</strong>.</li>
+      <li>Total nilai aset usaha BUMDes adalah <strong>${rupiah(d.totAset)}</strong>.</li>
+    </ol>
+    <p>Demikian laporan pertanggungjawaban ini kami sampaikan. Kami berkomitmen untuk terus meningkatkan kinerja usaha demi kemajuan Desa Bakalan dan kesejahteraan masyarakat.</p>
+  </div>
+
+  <!-- TANDA TANGAN -->
+  <div style="margin-top:40px">
+    <div style="font-size:16px;font-weight:900;color:#1a4731;border-bottom:2px solid #2d7a4f;padding-bottom:6px;margin-bottom:24px">X. LEMBAR PENGESAHAN</div>
+    <div style="display:flex;justify-content:space-between;text-align:center">
+      <div style="width:200px">
+        <p>Bakalan, ${d.tglDoc}</p>
+        <p><strong>Direktur BUMDes Kawulo Alit</strong></p>
+        <div style="height:60px;border-bottom:1px solid #333;margin:8px auto;width:160px"></div>
+        <p style="font-weight:700">( ________________________ )</p>
+      </div>
+      <div style="width:200px">
+        <p>&nbsp;</p>
+        <p><strong>Mengetahui,<br>Kepala Desa Bakalan</strong></p>
+        <div style="height:60px;border-bottom:1px solid #333;margin:8px auto;width:160px"></div>
+        <p style="font-weight:700">( ________________________ )</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:30px;padding:12px;background:#f0f9f5;border-radius:8px;color:#2d7a4f;font-size:12px">
+      Dokumen ini digenerate otomatis oleh Sistem Manajemen BUMDes Kawulo Alit pada ${d.tglDoc}
+    </div>
+  </div>
+
+</div>`;
+
+  if(mode === 'html') {
+    document.getElementById('lpjContent').innerHTML = content;
+    document.getElementById('lpjPreview').style.display = 'block';
+    document.getElementById('lpjPreview').scrollIntoView({behavior:'smooth'});
+    showToast('✅ Preview LPJ berhasil ditampilkan');
+  } else if(mode === 'print') {
+    // Build full print HTML as blob and open
+    const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>LPJ BUMDes Kawulo Alit - ${d.namaBulan} ${d.tahun}</title>
+<style>
+  body{font-family:'Times New Roman',serif;margin:20px 40px;color:#111;line-height:1.8;font-size:13px}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:6px 8px;border:1px solid #ccc;font-size:12px}
+  thead tr{background:#1a4731;color:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:1.5cm}
+  @media print{
+    body{margin:0}
+    .no-print{display:none}
+    thead{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head><body>
+<div class="no-print" style="text-align:center;padding:16px;background:#1a4731;color:white;margin-bottom:20px;border-radius:8px;font-family:sans-serif">
+  <strong>Klik Ctrl+P (Windows) atau Cmd+P (Mac) untuk mencetak / simpan sebagai PDF</strong>
+  <button onclick="window.print()" style="margin-left:16px;padding:8px 20px;background:white;color:#1a4731;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px">🖨️ CETAK SEKARANG</button>
+</div>
+${content}
+</body></html>`;
+    const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.download = `LPJ_BUMDes_Kawulo_Alit_${d.namaBulan}_${d.tahun}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    showToast('📥 File LPJ (HTML) berhasil diunduh. Buka file lalu Ctrl+P untuk cetak/PDF');
+  } else if(mode === 'docx') {
+    const docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office'
+xmlns:w='urn:schemas-microsoft-com:office:word'
+xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'>
+<title>LPJ BUMDes Kawulo Alit ${d.namaBulan} ${d.tahun}</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+<style>
+  body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.8;margin:2cm}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:6pt 8pt;border:1pt solid #ccc;font-size:11pt}
+  thead tr{background:#1a4731;color:white}
+  p{margin:6pt 0}
+  h2{font-size:13pt;color:#1a4731}
+</style>
+</head><body>${content}</body></html>`;
+    const blob = new Blob(['\ufeff'+docHtml], {type:'application/vnd.ms-word;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `LPJ_BUMDes_Kawulo_Alit_${d.namaBulan}_${d.tahun}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    showToast('📝 File LPJ Word (.doc) berhasil diunduh!');
+  }
+}
+</script>
+</body>
+</html>
